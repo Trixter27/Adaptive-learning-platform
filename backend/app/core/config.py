@@ -1,0 +1,42 @@
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+from uuid import UUID
+
+from pydantic import model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[3] / ".env", extra="ignore"
+    )
+
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/adaptive_learning"
+    environment: str = "development"
+    auth_mode: Literal["development", "clerk"] = "development"
+    dev_user_id: UUID = UUID("00000000-0000-4000-8000-000000000001")
+    api_v1_prefix: str = "/api/v1"
+    cors_origins: list[str] = ["http://localhost:3000"]
+    local_storage_path: Path = Path(__file__).resolve().parents[2] / ".local-storage"
+    clerk_secret_key: str = ""
+    clerk_publishable_key: str = ""
+    clerk_jwks_url: str = ""
+    storage_endpoint: str = ""
+    storage_bucket: str = ""
+    storage_access_key: str = ""
+    storage_secret_key: str = ""
+    model_base_url: str = ""
+    model_api_key: str = ""
+    model_name: str = ""
+
+    @model_validator(mode="after")
+    def safe_auth(self) -> "Settings":
+        if self.auth_mode == "development" and self.environment not in {"development", "test"}:
+            raise ValueError("Development authentication is only allowed in development/test.")
+        return self
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

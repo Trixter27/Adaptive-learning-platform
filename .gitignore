@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest_tmp/
+platform-v0.1-review*.zip
+.ruff_cache/
+*.egg-info/
+*.db
+backend/.local-storage/
+node_modules/
+.next/
