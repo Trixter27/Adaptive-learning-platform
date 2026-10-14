@@ -1,4 +1,5 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const protectedPrefixes = [
   "/backend-api",
@@ -12,7 +13,7 @@ const protectedPrefixes = [
   "/courses",
 ];
 
-export default clerkMiddleware(async (auth, request) => {
+const protectedMiddleware = clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl;
   const protectedRoute = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
@@ -22,6 +23,14 @@ export default clerkMiddleware(async (auth, request) => {
     await auth.protect();
   }
 });
+
+export default function proxy(request: NextRequest) {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
+    return NextResponse.next();
+  }
+
+  return protectedMiddleware(request, {} as never);
+}
 
 export const config = {
   matcher: [
