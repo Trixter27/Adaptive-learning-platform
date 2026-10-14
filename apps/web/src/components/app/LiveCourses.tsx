@@ -23,7 +23,22 @@ export default function LiveCourses() {
   }
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+
+    api.listCourses()
+      .then((data) => {
+        if (!cancelled) setCourses(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(friendlyApiError(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
