@@ -35,7 +35,31 @@ export default function CourseMapView({ courseId }: { courseId: string }) {
   }
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+
+    Promise.all([
+      api.getCourse(courseId),
+      api.getCourseMap(courseId),
+      api.getProgress(courseId),
+      api.getGame(courseId),
+    ])
+      .then(([courseData, mapData, progressData, gameData]) => {
+        if (cancelled) return;
+        setCourse(courseData);
+        setMap(mapData);
+        setProgress(progressData);
+        setGame(gameData);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(friendlyApiError(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [courseId]);
 
   const mastery = useMemo(() => {
