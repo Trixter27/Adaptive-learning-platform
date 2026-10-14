@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   ArrowRight,
   CheckCircle2,
   Flame,
-  MoreHorizontal,
-  Paperclip,
-  Send,
   Sparkles,
   Trophy,
 } from "lucide-react";
 import MediaArt from "@/components/app/MediaArt";
+import CourseTutor from "@/components/app/CourseTutor";
 import LiveCourses from "@/components/app/LiveCourses";
 import {
   dailyQuests,
@@ -20,26 +18,11 @@ import {
   learningPaths,
   performanceMetrics,
   recentAchievements,
-  user,
   weekDays,
 } from "@/lib/app-data";
 import { cn } from "@/lib/cn";
 
-const initialChat = [
-  "Hello Julian! I noticed you were exploring Transformers yesterday. Would you like to dive deeper into Self-Attention mechanisms today or review your recent quiz gaps?",
-];
-
 export default function DashboardView() {
-  const [message, setMessage] = useState("");
-  const [chat, setChat] = useState(initialChat);
-
-  function send() {
-    const value = message.trim();
-    if (!value) return;
-    setChat((c) => [...c, value]);
-    setMessage("");
-  }
-
   return (
     <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-12">
       <section className="app-panel relative overflow-hidden p-6 lg:col-span-12">
@@ -47,22 +30,17 @@ export default function DashboardView() {
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <h1 className="font-display text-3xl font-bold sm:text-4xl">
-              Welcome back, {user.firstName}!
+              Welcome to your learning world!
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              You&apos;re 240 XP away from Level 25. Complete your daily logic ritual to
-              secure your streak and unlock the{" "}
-              <Link href="/mastery" className="text-cyan hover:underline">
-                System Architect Badge
-              </Link>
-              .
+              Turn your PDF or PowerPoint into a course, then build mastery one challenge at a time.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
-                href="/library"
+                href="/courses/new"
                 className="btn-pink inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold"
               >
-                Continue Learning
+                Create Course
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -93,13 +71,14 @@ export default function DashboardView() {
               </span>
             </div>
             <div className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-              Daily Goal
+              Daily Goal · Preview
             </div>
           </div>
         </div>
       </section>
 
       <LiveCourses />
+      <p className="text-xs text-muted lg:col-span-12">The courses above and Aria use live APIs. Streaks, rankings, charts, learning paths, achievements and daily quests below are design previews.</p>
 
       <div className="flex flex-col gap-4 lg:col-span-8">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -216,70 +195,7 @@ export default function DashboardView() {
       </div>
 
       <div className="flex flex-col gap-4 lg:col-span-4">
-        <section className="app-panel flex min-h-[340px] flex-col p-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan/15 text-cyan">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold">AI Mentor: Aria <span className="ml-1 rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-muted">preview</span></div>
-                <div className="text-[10px] text-muted">Live grounded tutoring is available inside each course concept.</div>
-              </div>
-            </div>
-            <button type="button" className="text-muted" aria-label="Mentor options">
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="mt-4 flex-1 space-y-3 overflow-y-auto text-sm leading-relaxed text-muted">
-            {chat.map((line, i) => (
-              <p key={i} className={i ? "rounded-lg bg-white/5 p-2 text-text" : ""}>
-                {line}
-              </p>
-            ))}
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                Example source references
-              </div>
-              <p className="mt-1 text-[11px]">
-                Attention Is All You Need (Vaswani et al., 2017)
-              </p>
-              <p className="text-[11px]">Deep Learning Research Lab: Chapter 14</p>
-            </div>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask Aria about any concept..."
-              className="app-input h-10 flex-1 rounded-lg px-3 text-sm"
-            />
-            <button type="button" aria-label="Attach" className="rounded-lg border border-white/10 px-2 text-muted">
-              <Paperclip className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Send"
-              onClick={send}
-              className="rounded-lg bg-cyan px-2.5 text-bg"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {["Explain Latency", "Next Lesson", "Quiz Me"].map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                onClick={() => setMessage(chip)}
-                className="rounded-md bg-white/5 px-2.5 py-1 text-[11px] text-muted hover:text-text"
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-        </section>
+        <CourseTutor />
 
         <section className="app-panel p-4">
           <div className="mb-3 flex items-center justify-between">

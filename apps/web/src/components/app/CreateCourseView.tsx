@@ -29,7 +29,11 @@ export default function CreateCourseView() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!title.trim() || !file) return;
+    if (busy || !title.trim() || !file) return;
+    if (file.size === 0 || file.size > 100_000_000 || file.name.length > 255) {
+      setError("Choose a non-empty PDF/PPTX up to 100 MB with a filename under 256 characters.");
+      return;
+    }
     const metadata = fileMetadata(file);
     if (!metadata) {
       setError("Please choose a PDF or PPTX file.");
@@ -79,6 +83,7 @@ export default function CreateCourseView() {
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
           Upload a PDF or PowerPoint. Questoriaa will extract the source, build chapters and concepts,
           create semantic embeddings, and prepare adaptive challenges grounded in your material.
+          Selectable text only; scanned images need OCR outside Questoriaa. Keep material below 60,000 text characters / 200 chunks.
         </p>
       </div>
 
@@ -116,7 +121,7 @@ export default function CreateCourseView() {
                 <UploadCloud className="h-8 w-8 text-pink" />
                 <span className="mt-3 text-sm font-semibold">{file ? file.name : "Choose PDF or PowerPoint"}</span>
                 <span className="mt-1 text-xs text-muted">
-                  {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB selected` : "Text-based PDF/PPTX • up to backend limit"}
+                  {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB selected` : "Text-based PDF/PPTX • up to 100 MB"}
                 </span>
                 <input
                   type="file"
@@ -130,7 +135,7 @@ export default function CreateCourseView() {
             </label>
 
             {error && (
-              <div className="rounded-xl border border-pink/25 bg-pink/5 px-4 py-3 text-sm text-pink">
+              <div role="alert" className="rounded-xl border border-pink/25 bg-pink/5 px-4 py-3 text-sm text-pink">
                 {error}
               </div>
             )}

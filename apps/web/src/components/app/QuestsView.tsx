@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import LiveCourseProgress from "@/components/app/LiveCourseProgress";
 import { useMemo, useState } from "react";
 import { Lock, Zap } from "lucide-react";
 import MediaArt from "@/components/app/MediaArt";
@@ -34,6 +35,9 @@ export default function QuestsView() {
   }
 
   return (
+    <>
+    <LiveCourseProgress />
+    <details className="mx-auto max-w-[1400px]"><summary className="mb-5 cursor-pointer text-sm text-muted">Explore the visual preview — sample data, not your progress</summary>
     <div className="mx-auto max-w-[1400px] space-y-6">
       <section className="app-panel relative overflow-hidden p-6 sm:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,61,154,0.18),transparent_30%)]" />
@@ -294,5 +298,7 @@ export default function QuestsView() {
         </section>
       </div>
     </div>
+    </details>
+    </>
   );
 }

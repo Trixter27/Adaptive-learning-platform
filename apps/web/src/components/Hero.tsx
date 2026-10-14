@@ -195,7 +195,7 @@ export default function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-pink" />
             </span>
-            Now in Open Beta
+            Hackathon Prototype
           </div>
 
           <h1 className="mt-6 font-display text-5xl font-bold leading-[1.05] tracking-tight text-text sm:text-6xl lg:text-7xl">
@@ -239,8 +239,8 @@ export default function Hero() {
               ))}
             </div>
             <p className="text-sm text-muted">
-              <span className="font-semibold text-text">2,400+</span> learners
-              mastering subjects today
+              <span className="font-semibold text-text">Design preview</span> · sample
+              learner avatars and dashboard metrics
             </p>
           </div>
         </div>

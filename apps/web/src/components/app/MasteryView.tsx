@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import LiveCourseProgress from "@/components/app/LiveCourseProgress";
 import {
   Award,
   Calendar,
@@ -22,6 +23,9 @@ export default function MasteryView() {
   const [synced, setSynced] = useState(false);
 
   return (
+    <>
+    <LiveCourseProgress />
+    <details className="mx-auto max-w-[1400px]"><summary className="mb-5 cursor-pointer text-sm text-muted">Explore the visual preview — sample data, not your progress</summary>
     <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-12">
       <section className="app-panel relative overflow-hidden p-6 lg:col-span-12 lg:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,61,154,0.22),transparent_32%)]" />
@@ -261,6 +265,8 @@ export default function MasteryView() {
         </div>
       </section>
     </div>
+    </details>
+    </>
   );
 }
 

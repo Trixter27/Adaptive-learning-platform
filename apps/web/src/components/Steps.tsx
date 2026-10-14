@@ -18,7 +18,7 @@ const steps: Step[] = [
     icon: BookOpen,
     title: "Ingest Content",
     description:
-      "Feed your raw material—notes, books, or lectures. Our engine parses the core logic.",
+      "Upload a PDF or PowerPoint with selectable text. Our engine preserves page and slide locations.",
   },
   {
     num: "02",

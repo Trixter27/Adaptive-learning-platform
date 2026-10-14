@@ -20,21 +20,21 @@ const features: Feature[] = [
     icon: MessageCircleQuestion,
     title: "Interactive Quizzes",
     description:
-      "AI generates dynamic challenges based on your unique gaps. No two sessions are ever the same.",
+      "AI generates and verifies challenges using your course material and current mastery.",
     accent: "pink",
   },
   {
     icon: Layers,
-    title: "Multimodal Learning",
+    title: "Learn from Your Documents",
     description:
-      "Upload PDFs, voice notes, or videos. QUESTORIAA synthesizes everything into a unified knowledge graph.",
+      "Upload selectable-text PDFs or PowerPoint slides. QUESTORIAA organizes your material into chapters and concepts.",
     accent: "cyan",
   },
   {
     icon: ShieldCheck,
     title: "Grounded AI Answers",
     description:
-      "Our AI uses RAG (Retrieval-Augmented Generation) to ensure every explanation is cited and factual.",
+      "Ask about your course with retrieved evidence. See source-backed, inferred, or general-knowledge labels and available page or slide citations.",
     accent: "pink",
   },
   {
@@ -48,7 +48,7 @@ const features: Feature[] = [
     icon: Trophy,
     title: "XP-Based Gamification",
     description:
-      "Unlock achievements, climb leaderboards, and turn your education into a competitive sport.",
+      "Earn course XP for correct challenges and track your level as you learn.",
     accent: "pink",
   },
   {

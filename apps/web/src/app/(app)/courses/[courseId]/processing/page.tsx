@@ -8,9 +8,10 @@ export default async function ProcessingPage({
   searchParams,
 }: {
   params: Promise<{ courseId: string }>;
-  searchParams: Promise<{ job?: string }>;
+  searchParams: Promise<{ job?: string | string[] }>;
 }) {
   const { courseId } = await params;
   const { job = "" } = await searchParams;
-  return <ProcessingView courseId={courseId} jobId={job} />;
+  const jobId = typeof job === "string" ? job : "";
+  return <ProcessingView key={`${courseId}:${jobId}`} courseId={courseId} jobId={jobId} />;
 }

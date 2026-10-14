@@ -27,7 +27,7 @@ The frontend does not calculate challenge correctness, mastery, XP, difficulty, 
 
 ## Authentication
 
-Clerk protects application routes in Next.js. For the local hackathon demo FastAPI should remain on `AUTH_MODE=development`; the current Clerk backend provider intentionally fails closed because JWT verification is not yet implemented.
+Clerk protects application routes and the `/backend-api/*` gateway in Next.js. For the controlled hackathon demo FastAPI uses `ENVIRONMENT=development` and `AUTH_MODE=development`; backend JWT verification is not implemented. All signed-in users share the development identity. Keep the deployed API private. See [Railway setup](railway.md).
 
 ## Truthful MVP limits
 
@@ -35,3 +35,9 @@ Clerk protects application routes in Next.js. For the local hackathon demo FastA
 - OCR, image understanding, audio and video ingestion are not implemented.
 - Community, Achievements, Settings, and some dashboard widgets remain visual/demo data.
 - Live course pages, challenges, mastery, game state, and tutor citations use backend responses.
+
+Dashboard Aria and the course-map tutor now call `/tutor/chat`. Library lists all real courses; Mastery and Quests offer a course selector, backend mastery/XP/level and links to real concepts. Their original visual sections are preserved under an explicit preview disclosure. Course maps show returned prerequisite relationships and backend unlock state; studying later chapters is still allowed by the backend.
+
+Processing polls stop on completion/failure/unmount, abort requests on unmount, and offer status retry on transient errors. Missing or mismatched job IDs show an error. Duplicate attempts offer a new challenge; a saved assessment stays visible if refreshing progress fails. Matching/sequence selectors prevent duplicate indices. Numerical zero is valid; blank/non-finite answers are rejected.
+
+`node --test tests/api.test.mjs` from `apps/web` checks upload URL/header handling, answer payloads, 409 propagation and source labels. Tests use isolated HTTP doubles; the application never silently switches to fixtures.

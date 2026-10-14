@@ -8,10 +8,10 @@ import {
 } from "lucide-react";
 
 const bullets = [
-  { icon: Activity, text: "Real-time retention heatmaps" },
-  { icon: GitBranch, text: "Cross-subject knowledge linking" },
-  { icon: Brain, text: "AI-suggested study sprints" },
-  { icon: LineChart, text: "Guided load-based discipline" },
+  { icon: Activity, text: "Per-concept mastery from assessments" },
+  { icon: GitBranch, text: "Course concepts and prerequisites" },
+  { icon: Brain, text: "Verified adaptive challenges" },
+  { icon: LineChart, text: "Source-backed tutor responses" },
 ];
 
 export default function ProductShowcase() {
@@ -24,9 +24,8 @@ export default function ProductShowcase() {
               Mastery starts with visibility.
             </h2>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-muted">
-              Our dashboard gives you a cockpit view of your intelligence. Track
-              your neural retention, identify knowledge silos, and watch your XP
-              grow in real-time.
+              Open a course to track mastery and XP returned by the learning engine.
+              The dashboard illustration shows sample data from our visual design.
             </p>
 
             <ul className="mt-8 space-y-3">
@@ -44,7 +43,7 @@ export default function ProductShowcase() {
             </ul>
 
             <a
-              href="#cta"
+              href="/dashboard"
               className="btn-pink group mt-9 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold"
             >
               Explore the Dashboard

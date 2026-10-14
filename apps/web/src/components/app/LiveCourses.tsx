@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import { api, type Course, friendlyApiError } from "@/lib/api";
 
-export default function LiveCourses() {
+export default function LiveCourses({ showAll = false }: { showAll?: boolean }) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,13 +50,14 @@ export default function LiveCourses() {
           </div>
           <h2 className="mt-1 font-display text-lg font-semibold">Your Questoriaa Courses</h2>
           <p className="mt-1 text-xs text-muted">
-            Real courses from the FastAPI + Neon learning pipeline.
+            Your uploaded courses. Open a course to view its map and progress.
           </p>
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => void load()}
+            disabled={loading}
             className="btn-ghost inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
@@ -100,7 +101,7 @@ export default function LiveCourses() {
         </Link>
       ) : (
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {courses.slice(-6).reverse().map((course) => (
+          {(showAll ? courses.slice() : courses.slice(-6)).reverse().map((course) => (
             <Link
               href={`/courses/${course.id}`}
               key={course.id}
@@ -114,7 +115,7 @@ export default function LiveCourses() {
               </div>
               <h3 className="mt-3 font-display text-sm font-semibold">{course.title}</h3>
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
-                {course.description || "Adaptive course ready for concept mapping and challenges."}
+                {course.description || "Open this course to check its concept map and learning progress."}
               </p>
             </Link>
           ))}

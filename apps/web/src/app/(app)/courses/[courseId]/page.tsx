@@ -5,5 +5,5 @@ export const metadata: Metadata = { title: "Course Map — QUESTORIAA" };
 
 export default async function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params;
-  return <CourseMapView courseId={courseId} />;
+  return <CourseMapView key={courseId} courseId={courseId} />;
 }

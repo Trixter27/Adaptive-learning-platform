@@ -153,6 +153,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
+    signal: init?.signal ?? AbortSignal.timeout(init?.method === "POST" ? 900_000 : 30_000),
     headers: {
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       ...(init?.headers || {}),
@@ -162,7 +163,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     let code = "REQUEST_FAILED";
-    let message = `Request failed with status ${response.status}`;
+    let message = response.status === 401 ? "Your session has expired. Sign in again." :
+      response.status === 502 || response.status === 504 ? "The API or model did not respond. Check the backend and model service, then retry." :
+      `Request failed with status ${response.status}`;
     try {
       const body = await response.json();
       code = body?.error?.code || code;
@@ -200,13 +203,13 @@ export const api = {
     const target = /^https?:\/\//i.test(upload.upload_url)
       ? upload.upload_url
       : `${API_BASE}${upload.upload_url.startsWith("/") ? "" : "/"}${upload.upload_url}`;
+    const headers = new Headers(upload.headers);
+    if (!headers.has("Content-Type")) headers.set("Content-Type", contentType);
     const response = await fetch(target, {
       method: upload.method || "PUT",
-      headers: {
-        ...upload.headers,
-        "Content-Type": contentType,
-      },
+      headers,
       body: file,
+      signal: AbortSignal.timeout(180_000),
     });
     if (!response.ok) {
       throw new ApiError(response.status, "UPLOAD_FAILED", "The source file could not be uploaded.");
@@ -222,7 +225,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ file_id: fileId }),
     }),
-  getJob: (jobId: string) => request<ProcessingJob>(`/api/v1/jobs/${jobId}`),
+  getJob: (jobId: string, signal?: AbortSignal) => request<ProcessingJob>(`/api/v1/jobs/${jobId}`, { signal }),
   getCourseMap: (courseId: string) => request<CourseMap>(`/api/v1/courses/${courseId}/map`),
   getConcept: (conceptId: string) => request<Concept>(`/api/v1/concepts/${conceptId}`),
   nextChallenge: (courseId: string, conceptId?: string) =>
@@ -261,9 +264,12 @@ export function sourceLabel(source: SourceReference): string {
 }
 
 export function friendlyApiError(error: unknown): string {
+  if (error instanceof DOMException && error.name === "TimeoutError") {
+    return "The request timed out. For an upload or answer submission, the server may still have completed it. Refresh progress before trying again.";
+  }
   if (error instanceof ApiError) return error.message;
   if (error instanceof TypeError) {
-    return "Could not reach the Questoriaa API. Make sure FastAPI is running on port 8000.";
+    return "Could not reach the Questoriaa API. Check your connection and that the API service is running.";
   }
   return error instanceof Error ? error.message : "Something went wrong.";
 }

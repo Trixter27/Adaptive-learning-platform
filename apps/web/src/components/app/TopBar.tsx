@@ -31,12 +31,15 @@ export default function TopBar({ onMenu }: { onMenu: () => void }) {
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           type="search"
+          disabled
+          title="Global search is a design preview. Find your courses in Library."
           placeholder={placeholder}
           className="app-input h-10 w-full max-w-xl rounded-xl pl-10 pr-4 text-sm"
         />
       </label>
 
       <div className="hidden items-center gap-4 sm:flex">
+        <span className="text-[10px] uppercase text-muted">Preview stats</span>
         <div className="flex items-center gap-1.5 text-sm font-semibold text-pink">
           <Flame className="h-4 w-4 fill-pink" />
           {user.streak}

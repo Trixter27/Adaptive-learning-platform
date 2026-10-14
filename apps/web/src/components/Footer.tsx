@@ -120,7 +120,7 @@ export default function Footer() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              Systems Operational
+              Hackathon Prototype
             </div>
             <span className="text-xs text-muted">Build v1.0.0-beta</span>
           </div>

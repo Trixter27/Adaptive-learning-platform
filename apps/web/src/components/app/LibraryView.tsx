@@ -18,6 +18,7 @@ import {
   Star,
   User,
 } from "lucide-react";
+import LiveCourses from "@/components/app/LiveCourses";
 import MediaArt from "@/components/app/MediaArt";
 import {
   curatedPaths,
@@ -72,20 +73,21 @@ export default function LibraryView() {
         </div>
         <div className="flex gap-2">
           <button
-            type="button"
+            type="button" disabled title="Download manager is a design preview"
             className="btn-ghost inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
           >
             <Download className="h-4 w-4" /> Download Manager
           </button>
-          <button
-            type="button"
+          <Link href="/courses/new"
             className="btn-pink inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
           >
             <Plus className="h-4 w-4" /> Add Resource
-          </button>
+          </Link>
         </div>
       </div>
 
+      <LiveCourses showAll />
+      <p className="my-5 text-xs text-muted">Curated collections below are visual previews. Your uploaded courses are listed above.</p>
       <div className="grid gap-4 lg:grid-cols-12">
         <aside className="space-y-4 lg:col-span-3">
           <section className="app-panel p-3">

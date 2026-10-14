@@ -9,5 +9,5 @@ export default async function ConceptPage({
   params: Promise<{ courseId: string; conceptId: string }>;
 }) {
   const { courseId, conceptId } = await params;
-  return <ConceptQuestView courseId={courseId} conceptId={conceptId} />;
+  return <ConceptQuestView key={`${courseId}:${conceptId}`} courseId={courseId} conceptId={conceptId} />;
 }

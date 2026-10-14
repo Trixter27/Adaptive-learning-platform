@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  ApiError,
   friendlyApiError,
   sourceLabel,
   type AssessmentResult,
@@ -52,6 +53,8 @@ export default function ConceptQuestView({
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [alreadyAttempted, setAlreadyAttempted] = useState(false);
+  const [progressError, setProgressError] = useState("");
   const [error, setError] = useState("");
 
   const [tutorMessage, setTutorMessage] = useState("");
@@ -100,6 +103,7 @@ export default function ConceptQuestView({
     setTextAnswer("");
     setNumberAnswer("");
     setAssessment(null);
+    setAlreadyAttempted(false);
     setStartedAt(Date.now());
 
     const matchingContent = next.content as MatchingContent;
@@ -111,6 +115,7 @@ export default function ConceptQuestView({
   }
 
   async function generateChallenge() {
+    if (generating || submitting) return;
     setGenerating(true);
     setError("");
 
@@ -175,7 +180,7 @@ export default function ConceptQuestView({
   }
 
   async function submitAnswer() {
-    if (!challenge) return;
+    if (!challenge || submitting || assessment || alreadyAttempted) return;
 
     const answer = answerPayload();
     if (!answer) {
@@ -194,23 +199,30 @@ export default function ConceptQuestView({
       );
       setAssessment(result);
 
-      const [progressData, gameData] = await Promise.all([
-        api.getProgress(courseId),
-        api.getGame(courseId),
-      ]);
-      setProgress(progressData);
-      setGame(gameData);
+      await refreshProgress();
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) setAlreadyAttempted(true);
       setError(friendlyApiError(err));
     } finally {
       setSubmitting(false);
     }
   }
 
+  async function refreshProgress() {
+    setProgressError("");
+    try {
+      const [progressData, gameData] = await Promise.all([api.getProgress(courseId), api.getGame(courseId)]);
+      setProgress(progressData);
+      setGame(gameData);
+    } catch {
+      setProgressError("Your answer was saved, but the latest mastery/XP could not be loaded.");
+    }
+  }
+
   async function askTutor(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const message = tutorMessage.trim();
-    if (!message) return;
+    if (!message || tutorBusy) return;
 
     setTutorBusy(true);
     setTutorError("");
@@ -293,7 +305,7 @@ export default function ConceptQuestView({
               <button
                 type="button"
                 onClick={() => void generateChallenge()}
-                disabled={generating}
+                disabled={generating || !concept}
                 className="btn-pink mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold disabled:opacity-50"
               >
                 {generating ? (
@@ -325,7 +337,7 @@ export default function ConceptQuestView({
               <div className="mt-6">
                 <ChallengeInput
                   challenge={challenge}
-                  disabled={Boolean(assessment)}
+                  disabled={Boolean(assessment) || submitting || alreadyAttempted}
                   selectedOption={selectedOption}
                   setSelectedOption={setSelectedOption}
                   textAnswer={textAnswer}
@@ -339,7 +351,7 @@ export default function ConceptQuestView({
                 />
               </div>
 
-              {!assessment && (
+              {!assessment && !alreadyAttempted && (
                 <button
                   type="button"
                   onClick={() => void submitAnswer()}
@@ -354,6 +366,8 @@ export default function ConceptQuestView({
                   {submitting ? "Evaluating…" : "Submit Answer"}
                 </button>
               )}
+
+              {alreadyAttempted && !assessment && <button type="button" disabled={generating} onClick={() => void generateChallenge()} className="btn-pink mt-5 rounded-lg px-4 py-2 text-sm disabled:opacity-50">{generating ? "Generating…" : "Request a new challenge"}</button>}
 
               {assessment && (
                 <div
@@ -430,6 +444,7 @@ export default function ConceptQuestView({
               {error}
             </div>
           )}
+          {progressError && <p role="alert" className="text-sm text-pink">{progressError}<button type="button" className="btn-ghost ml-3 rounded-lg px-3 py-2" onClick={() => void refreshProgress()}>Refresh progress</button></p>}
         </div>
 
         <aside className="space-y-5">
@@ -465,6 +480,9 @@ export default function ConceptQuestView({
 
             <form onSubmit={askTutor} className="mt-4">
               <textarea
+                aria-label="Question for Aria"
+                maxLength={10000}
+                disabled={tutorBusy}
                 value={tutorMessage}
                 onChange={(event) => setTutorMessage(event.target.value)}
                 placeholder="Explain this concept using my notes…"
@@ -498,7 +516,7 @@ export default function ConceptQuestView({
               <Metric label="Level" value={String(game?.level ?? 1)} accent="pink" />
             </div>
             <div className="mt-3 text-[11px] text-muted">
-              Completed challenges: {game?.completed_challenges.length ?? 0}
+                        Completed challenges: {game?.completed_challenges.length ?? 0}
             </div>
           </section>
         </aside>
@@ -560,6 +578,8 @@ function ChallengeInput(props: {
     return (
       <div>
         <textarea
+          aria-label="Your short answer"
+          maxLength={10000}
           disabled={disabled}
           value={props.textAnswer}
           onChange={(event) => props.setTextAnswer(event.target.value)}
@@ -606,6 +626,7 @@ function ChallengeInput(props: {
           >
             <div className="text-sm">{item}</div>
             <select
+              aria-label={`Match for ${item}`}
               disabled={disabled}
               value={props.matching[index] ?? -1}
               onChange={(event) => {
@@ -620,6 +641,7 @@ function ChallengeInput(props: {
                 <option
                   key={value + "-" + String(rightIndex)}
                   value={rightIndex}
+                  disabled={props.matching.some((match, row) => row !== index && match === rightIndex)}
                 >
                   {value}
                 </option>
@@ -642,6 +664,7 @@ function ChallengeInput(props: {
         >
           <div className="text-sm">{item}</div>
           <select
+            aria-label={`Position for ${item}`}
             disabled={disabled}
             value={props.sequencePositions[index] ?? -1}
             onChange={(event) => {
@@ -653,7 +676,7 @@ function ChallengeInput(props: {
           >
             <option value={-1}>Position…</option>
             {items.map((_, position) => (
-              <option key={position} value={position}>
+              <option key={position} value={position} disabled={props.sequencePositions.some((value, row) => row !== index && value === position)}>
                 {position + 1}
               </option>
             ))}
@@ -697,7 +720,7 @@ function SourceList({
   sources: SourceReference[];
   compact?: boolean;
 }) {
-  if (!sources.length) return null;
+  if (!sources?.length) return null;
 
   return (
     <div className={compact ? "mt-3" : "mt-4"}>
@@ -708,9 +731,10 @@ function SourceList({
         {sources.map((source, index) => (
           <span
             key={source.file_id + "-" + String(index)}
+            title={`File ${source.file_id}`}
             className="rounded-md border border-cyan/15 bg-cyan/5 px-2 py-1 text-[10px] text-cyan"
           >
-            {sourceLabel(source)}
+            {sourceLabel(source)} · {source.file_id.slice(0, 8)}
           </span>
         ))}
       </div>

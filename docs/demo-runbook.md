@@ -36,7 +36,7 @@ EMBEDDING_API_KEY=ollama
 LEARNING__MODEL_TIMEOUT_SECONDS=60
 ```
 
-`EMBEDDING_DIMENSION=1024` is accepted on the frontend-integration branch after the config parsing fix.
+`DATABASE_URL` must point to the prepared PostgreSQL schema at migration `0002`. `EMBEDDING_DIMENSION=1024` is required by the embedding contract. Do not apply migrations blindly to live Neon. If Qwen needs more time, raise both `MODEL_TIMEOUT_SECONDS` and `LEARNING__MODEL_TIMEOUT_SECONDS` together, up to 120 seconds for the latter.
 
 ## 3. Frontend environment
 
@@ -65,6 +65,7 @@ Terminal 1:
 Terminal 2:
 
 ```powershell
+$env:PYTHONPATH = (Resolve-Path .\backend).Path
 .\.venv\Scripts\python.exe -m app.workers.processing --poll
 ```
 
@@ -77,6 +78,10 @@ npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+Run `.\.venv\Scripts\python.exe backend/scripts/model_smoke.py` before the demo; unavailable models are a blocker, not a reason to switch silently to mocks. The final completion checks found the real text/embedding endpoints unavailable, while the database was reachable and at `0002`.
+
+For the same-origin Railway-style path locally, set `NEXT_PUBLIC_API_BASE_URL=/backend-api` and `BACKEND_INTERNAL_URL=http://127.0.0.1:8000` in the frontend process before `npm run build`; then `npm run start`. Leave existing secret files untouched. Deployment settings and variable names are in [Railway setup](railway.md).
 
 ## 5. Critical validation order
 

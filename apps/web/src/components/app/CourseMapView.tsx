@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CourseTutor from "@/components/app/CourseTutor";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, Brain, CheckCircle2, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, Trophy, Zap } from "lucide-react";
 import { api, friendlyApiError, type Course, type CourseMap, type GameState, type ProgressResponse } from "@/lib/api";
@@ -110,7 +111,7 @@ export default function CourseMapView({ courseId }: { courseId: string }) {
 
       <div className="mt-6 space-y-7">
         {map.chapters.map((chapter, chapterIndex) => {
-          const unlocked = !game?.unlocked_chapter_ids?.length || game.unlocked_chapter_ids.includes(chapter.id) || chapterIndex === 0;
+          const unlocked = Boolean(game?.unlocked_chapter_ids.includes(chapter.id));
           return (
             <section key={chapter.id} className="relative">
               {chapterIndex < map.chapters.length - 1 && <div className="absolute bottom-[-28px] left-7 top-full w-px bg-gradient-to-b from-pink/50 to-transparent" />}
@@ -121,6 +122,7 @@ export default function CourseMapView({ courseId }: { courseId: string }) {
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.2em] text-muted">Chapter {chapterIndex + 1}</div>
                   <h2 className="font-display text-xl font-semibold">{chapter.title}</h2>
+                  <p className="text-[11px] text-muted">{unlocked ? "Unlocked in game state" : "Available to study · not yet unlocked in game state"}</p>
                 </div>
               </div>
 
@@ -146,6 +148,10 @@ export default function CourseMapView({ courseId }: { courseId: string }) {
                               </div>
                               <h3 className="mt-3 text-sm font-semibold">{concept.name}</h3>
                               <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted">{concept.description}</p>
+                              {map.prerequisites.filter((edge) => edge.concept_id === concept.id).map((edge) => {
+                                const prerequisite = map.chapters.flatMap((item) => item.topics.flatMap((entry) => entry.concepts)).find((item) => item.id === edge.prerequisite_concept_id);
+                                return <p key={edge.prerequisite_concept_id} className="mt-2 text-[10px] text-cyan">Builds on: {prerequisite?.name || edge.prerequisite_concept_id}</p>;
+                              })}
                               <div className="mt-4 flex items-center gap-2">
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
                                   <div className="h-full rounded-full bg-gradient-to-r from-pink to-cyan" style={{ width: `${Math.round(score * 100)}%` }} />
@@ -168,6 +174,7 @@ export default function CourseMapView({ courseId }: { courseId: string }) {
       {map.chapters.length === 0 && (
         <div className="app-panel mt-6 p-6 text-sm text-muted">No chapters were generated for this course yet.</div>
       )}
+      {map.chapters.length > 0 && <div className="mt-6"><CourseTutor key={courseId} courseId={courseId} /></div>}
     </div>
   );
 }

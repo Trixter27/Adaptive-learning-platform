@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { CheckCircle2, Circle, LoaderCircle, Sparkles, XCircle } from "lucide-react";
 import { api, friendlyApiError, type ProcessingJob } from "@/lib/api";
 
@@ -19,17 +20,20 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
   const router = useRouter();
   const [job, setJob] = useState<ProcessingJob | null>(null);
   const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     if (!jobId) return;
 
     let cancelled = false;
+    const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function poll() {
       try {
-        const next = await api.getJob(jobId);
+        const next = await api.getJob(jobId, AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]));
         if (cancelled) return;
+        if (next.course_id !== courseId) throw new Error("This job belongs to another course.");
         setJob(next);
         if (next.status === "completed") {
           timer = setTimeout(() => router.replace(`/courses/${courseId}`), 700);
@@ -48,16 +52,17 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
     void poll();
     return () => {
       cancelled = true;
+      controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [courseId, jobId, router]);
+  }, [courseId, jobId, router, retry]);
 
   const currentIndex = useMemo(() => {
     if (!job) return 0;
     return Math.max(0, stages.findIndex(([id]) => id === job.stage));
   }, [job]);
 
-  const progress = job?.progress ?? 2;
+  const progress = job?.progress ?? 0;
   const displayError = !jobId ? "Missing processing job id." : error;
 
   return (
@@ -89,7 +94,7 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
           <div className="mt-7 grid gap-2 sm:grid-cols-2">
             {stages.map(([id, label], index) => {
               const complete = index < currentIndex || job?.status === "completed";
-              const current = index === currentIndex && job?.status !== "completed";
+              const current = index === currentIndex && job?.status !== "completed" && !displayError;
               return (
                 <div key={id} className="flex items-center gap-3 rounded-xl bg-white/[0.025] px-3 py-3">
                   {complete ? (
@@ -106,8 +111,13 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
           </div>
 
           {displayError && (
-            <div className="mt-6 rounded-xl border border-pink/25 bg-pink/5 p-4 text-sm text-pink">
-              {error}
+            <div role="alert" className="mt-6 rounded-xl border border-pink/25 bg-pink/5 p-4 text-sm text-pink">
+              {displayError}
+              <div className="mt-3 flex flex-wrap gap-3">
+                {jobId && job?.status !== "failed" && <button type="button" className="btn-ghost rounded-lg px-3 py-2" onClick={() => { setError(""); setRetry((value) => value + 1); }}>Retry status check</button>}
+                <Link className="btn-ghost rounded-lg px-3 py-2" href={`/courses/${courseId}`}>View course</Link>
+                <Link className="btn-pink rounded-lg px-3 py-2" href="/courses/new">Upload another document</Link>
+              </div>
             </div>
           )}
         </div>

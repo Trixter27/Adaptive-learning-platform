@@ -44,11 +44,11 @@ export default function Testimonials() {
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
             <h2 className="font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">
-              Loved by Modern Learners
+              Learner Stories · Preview
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted">
-              Join thousands of students and professionals who have leveled up
-              their learning game.
+              Illustrative personas and sample stories from the design preview,
+              not verified customer testimonials.
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-card px-4 py-2">
@@ -60,8 +60,8 @@ export default function Testimonials() {
                 />
               ))}
             </div>
-            <span className="text-sm font-semibold text-text">4.9/5</span>
-            <span className="text-xs text-muted">rating on G2</span>
+            <span className="text-sm font-semibold text-text">Preview</span>
+            <span className="text-xs text-muted">sample ratings</span>
           </div>
         </div>
 
