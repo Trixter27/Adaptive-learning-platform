@@ -44,6 +44,34 @@ Percent-encode special characters in credentials. Migration 0002 requires Postgr
 before migrating an existing database.
 Application startup does not create tables: run migrations before using domain routes.
 
+## Frontend (Questoriaa)
+
+The Next.js frontend lives in `apps/web` and is integrated with the FastAPI course flow.
+
+Create `apps/web/.env.local` (never commit real keys):
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+```
+
+For the local hackathon demo keep the backend on `ENVIRONMENT=development` and `AUTH_MODE=development`. Clerk protects the Next.js application routes, while the FastAPI development auth provider maps API requests to the fixed local development user until backend Clerk JWT verification is implemented.
+
+Run the frontend from a third terminal:
+
+```powershell
+cd apps/web
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`. The critical demo flow is Dashboard → Create Course → Upload PDF/PPTX → Processing → Course Map → Adaptive Challenge → Mastery/XP → Tutor citations.
+
 ## Run
 
 ```powershell
