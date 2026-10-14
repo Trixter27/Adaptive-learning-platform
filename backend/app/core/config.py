@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     model_base_url: str = ""
     model_api_key: str = ""
     model_name: str = ""
+    model_provider: Literal["mock", "openai", "unavailable"] | None = None
+    model_timeout_seconds: float = Field(default=30, gt=0, le=300, allow_inf_nan=False)
+    model_max_attempts: int = Field(default=2, ge=1, le=3)
     knowledge_provider: Literal["mock", "questoriaa"] = "mock"
     embedding_provider: Literal["mock", "openai"] = "openai"
     embedding_base_url: str = ""

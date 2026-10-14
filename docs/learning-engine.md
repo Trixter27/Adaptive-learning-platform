@@ -116,19 +116,22 @@ MCQ learner available in development/tests. Thresholds and limits are centralize
 `LEARNING__REVIEW_FAILURES=3`, `LEARNING__GENERATION_ATTEMPTS=3`, and
 `LEARNING__MODEL_TIMEOUT_SECONDS=30`. See the policy class for all validated fields.
 
-In development/test, `create_model` selects MockModelProvider. It generates a few generic
+When `MODEL_PROVIDER` is omitted, development/test selects MockModelProvider.
+Explicit `MODEL_PROVIDER=mock` also selects it. It generates a few generic
 source-excerpt MCQs, performs fixture checks, and compares short answers literally. These
 are deterministic integration fixtures, **not semantic AI verification**. All five modes
 are supported by the adaptive orchestrator and exercised using explicit scripted providers
 in tests; the default mock only generates MCQs. It fails cleanly when its prompt variants
 are exhausted instead of manufacturing unlimited variants or source claims.
 
-To plug in a real model, implement the existing ModelProvider protocol and select it in
-`create_model`; generation, verification and short-answer grading share this adapter.
-The neutral schemas live in `services/inference/schemas.py`. An adapter must honor the
-provided output schema and return validated models. No Gemini dependency or parallel model stack is introduced. Production currently selects UnavailableModelProvider, so the API
-boots without credentials but model calls return `503 MODEL_UNAVAILABLE`. Provider errors
-and per-call timeouts also return a sanitized 503; there is no silent runtime mock fallback.
+`MODEL_PROVIDER=openai` selects the existing OpenAI-compatible ModelProvider adapter;
+generation, verification, short-answer grading and tutor share it. Configure `MODEL_BASE_URL`,
+`MODEL_NAME` and any required `MODEL_API_KEY`. The neutral schemas remain in
+`services/inference/schemas.py`; JSON output is parsed and validated against them with
+bounded retries. See [model integration](model-integration.md). No Gemini dependency or
+parallel model stack is introduced. `MODEL_PROVIDER=unavailable` fails closed with
+`503 MODEL_UNAVAILABLE`; this remains the production default when selection is omitted.
+Provider errors and per-call timeouts are sanitized; there is no runtime mock fallback.
 
 No learning-specific migration is required: Challenge stores the private key and supporting IDs, Attempt stores
 the assessment JSON, and MasteryState/GameState retain their existing schemas. Tests cover
