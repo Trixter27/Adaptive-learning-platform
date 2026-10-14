@@ -47,7 +47,7 @@ export default function ConceptQuestView({
   const [numberAnswer, setNumberAnswer] = useState("");
   const [matching, setMatching] = useState<number[]>([]);
   const [sequencePositions, setSequencePositions] = useState<number[]>([]);
-  const [startedAt, setStartedAt] = useState(Date.now());
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -190,7 +190,7 @@ export default function ConceptQuestView({
       const result = await api.submitAttempt(
         challenge.id,
         answer,
-        (Date.now() - startedAt) / 1000,
+        startedAt ? (Date.now() - startedAt) / 1000 : 0,
       );
       setAssessment(result);
 
