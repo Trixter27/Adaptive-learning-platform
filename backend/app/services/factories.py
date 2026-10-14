@@ -8,14 +8,33 @@ from app.services.inference.base import ModelProvider
 from app.services.inference.mock import MockModelProvider
 from app.services.inference.unavailable import UnavailableModelProvider
 from app.services.knowledge.base import KnowledgeService
+from app.services.knowledge.embeddings import MockEmbeddingProvider, OpenAIEmbeddingProvider
 from app.services.knowledge.mock import MockKnowledgeService
+from app.services.knowledge.questoriaa import QuestoriaaKnowledgeService
 from app.services.learning.adaptive import AdaptiveLearningService
 from app.services.learning.base import LearningService
 from app.services.learning.mock import MockLearningService
+from app.services.storage.local import get_storage
 
 
 def create_knowledge(db: Session) -> KnowledgeService:
-    return MockKnowledgeService(db)
+    settings = get_settings()
+    if settings.knowledge_provider == "mock":
+        return MockKnowledgeService(db)
+    return QuestoriaaKnowledgeService(db, get_storage(), create_model(), create_embeddings())
+
+
+def create_embeddings():
+    settings = get_settings()
+    if settings.embedding_provider == "mock":
+        if settings.environment not in {"development", "test"}:
+            raise AppError(
+                503, "EMBEDDING_UNAVAILABLE", "Mock embeddings require development/test."
+            )
+        return MockEmbeddingProvider()
+    return OpenAIEmbeddingProvider(
+        settings.embedding_base_url, settings.embedding_api_key, settings.embedding_model
+    )
 
 
 def create_learning(db: Session, model: ModelProvider | None = None) -> LearningService:

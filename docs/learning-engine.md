@@ -32,7 +32,7 @@ material. Game rewards remain in the platform's existing game service.
 Prompt comparison uses Unicode NFKC normalization, case folding, punctuation removal,
 and collapsed whitespace. This prevents obvious duplicates within the recent attempted
 window, not all semantic paraphrases. Unattempted generated questions are not exclusions.
-No embedding store, new column, or migration is needed.
+The repetition guard needs no extra schema; knowledge embeddings are managed separately.
 
 ## Mode contracts and grading
 
@@ -64,8 +64,13 @@ null when the response does not establish one. Short-answer grading may identify
 misconception from the student's response; successful answers always return null. Models
 provide only evidence IDs, never page/slide/timestamp fields. AssessmentResult adds an
 optional/default-empty `sources: SourceReference[]`, built from authoritative database metadata.
-Older stored assessment JSON remains valid. If a challenge's cited context is no longer
-retrievable, assessment fails with `409 INVALID_CHALLENGE` instead of using unrelated text.
+Older stored assessment JSON remains valid. Grading calls KnowledgeService.get_context_by_ids
+with the Challenge's persisted evidence IDs and concept/course scope; it never repeats semantic
+search. Shared chunks are valid for every persisted concept association, even when their
+primary concept differs. Citation validation resolves that association and the requested
+context concept without modifying stored primary metadata. Requested ID order is preserved and locations come from database records. If any cited
+context is missing or out of scope, assessment fails with `409 INVALID_CHALLENGE` instead of
+using unrelated text. See [Knowledge Integration v1](knowledge-engine.md).
 
 ## Bayesian Knowledge Tracing
 
@@ -121,12 +126,11 @@ are exhausted instead of manufacturing unlimited variants or source claims.
 To plug in a real model, implement the existing ModelProvider protocol and select it in
 `create_model`; generation, verification and short-answer grading share this adapter.
 The neutral schemas live in `services/inference/schemas.py`. An adapter must honor the
-provided output schema and return validated models. No Gemini dependency or external engine
-integration is present. Production currently selects UnavailableModelProvider, so the API
+provided output schema and return validated models. No Gemini dependency or parallel model stack is introduced. Production currently selects UnavailableModelProvider, so the API
 boots without credentials but model calls return `503 MODEL_UNAVAILABLE`. Provider errors
 and per-call timeouts also return a sanitized 503; there is no silent runtime mock fallback.
 
-No migration is required: Challenge stores the private key and supporting IDs, Attempt stores
+No learning-specific migration is required: Challenge stores the private key and supporting IDs, Attempt stores
 the assessment JSON, and MasteryState/GameState retain their existing schemas. Tests cover
 the legacy adapter plus the adaptive course → concept → challenge → attempt → mastery → game
 flow without external services. Real semantic accuracy and live PostgreSQL concurrency still

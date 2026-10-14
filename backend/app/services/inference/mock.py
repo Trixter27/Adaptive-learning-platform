@@ -9,6 +9,7 @@ from app.services.inference.schemas import (
     QuestionVerificationDraft,
     TutorDraft,
 )
+from app.services.knowledge.schemas import CourseDraft
 from app.services.learning.policy import normalize_prompt
 
 
@@ -19,6 +20,31 @@ class MockModelProvider:
         return "Mock tutor: practice retrieving the idea from memory, then check your notes."
 
     async def generate_structured(self, messages: list[dict[str, str]], schema: type[T]) -> T:
+        if schema is CourseDraft:
+            payload = json.loads(messages[-1]["content"])
+            return schema.model_validate(
+                {
+                    "chapters": [
+                        {
+                            "title": f"{payload['title'][:150]} (mock outline)",
+                            "topics": [
+                                {
+                                    "title": f"Source sections {start + 1}-{min(start + 20, len(payload['sources']))} (mock)",
+                                    "concepts": [
+                                        {
+                                            "name": f"Source section {source['number']} (mock)",
+                                            "description": source["content"],
+                                            "source_numbers": [source["number"]],
+                                        }
+                                        for source in payload["sources"][start : start + 20]
+                                    ],
+                                }
+                                for start in range(0, len(payload["sources"]), 20)
+                            ],
+                        }
+                    ]
+                }
+            )
         if schema is TutorDraft:
             context = [m["content"] for m in messages if m["role"] == "context"]
             return schema.model_validate(

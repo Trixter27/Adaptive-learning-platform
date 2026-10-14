@@ -4,6 +4,8 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["ENVIRONMENT"] = "test"
 os.environ["AUTH_MODE"] = "development"
+os.environ["KNOWLEDGE_PROVIDER"] = "mock"
+os.environ["EMBEDDING_PROVIDER"] = "mock"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

@@ -50,6 +50,12 @@ class LocalStorageService:
     async def delete_object(self, object_key: str) -> None:
         self.path(object_key).unlink(missing_ok=True)
 
+    async def read_object(self, object_key: str) -> bytes:
+        try:
+            return self.path(object_key).read_bytes()
+        except OSError as exc:
+            raise AppError(422, "INVALID_UPLOAD", "Uploaded object is unavailable.") from exc
+
 
 @lru_cache
 def get_storage() -> LocalStorageService:

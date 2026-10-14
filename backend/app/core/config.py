@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     model_base_url: str = ""
     model_api_key: str = ""
     model_name: str = ""
+    knowledge_provider: Literal["mock", "questoriaa"] = "mock"
+    embedding_provider: Literal["mock", "openai"] = "openai"
+    embedding_base_url: str = ""
+    embedding_api_key: str = ""
+    embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
+    embedding_dimension: Literal[1024] = 1024
     learning_mode: Literal["adaptive", "mock"] = "adaptive"
     learning: LearningPolicy = Field(default_factory=LearningPolicy)
 

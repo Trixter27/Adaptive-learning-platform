@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models import domain as m
 from app.schemas import domain as s
+from app.services.knowledge.store import DatabaseChunkStore, course_map, scoped_chunks
 
 
 class MockKnowledgeService:
@@ -100,9 +101,7 @@ class MockKnowledgeService:
     async def retrieve_context(
         self, course_id: UUID, query: str, concept_id: UUID | None = None, top_k: int = 8
     ) -> list[s.RetrievedChunk]:
-        statement = select(m.SourceChunk).where(m.SourceChunk.course_id == course_id)
-        if concept_id is not None:
-            statement = statement.where(m.SourceChunk.concept_id == concept_id)
+        statement = scoped_chunks(course_id, concept_id)
         chunks = self.db.scalars(statement.order_by(m.SourceChunk.id)).all()
         words = set(query.lower().split())
         ranked = sorted(
@@ -112,7 +111,7 @@ class MockKnowledgeService:
             s.RetrievedChunk(
                 chunk_id=c.id,
                 course_id=c.course_id,
-                concept_id=c.concept_id,
+                concept_id=concept_id if concept_id is not None else c.concept_id,
                 content=c.content,
                 score=1.0 / (i + 1),
                 source=self.source_reference(c),
@@ -131,23 +130,8 @@ class MockKnowledgeService:
             end_seconds=chunk.end_seconds,
         )
 
+    async def get_context_by_ids(self, course_id, chunk_ids, concept_id=None):
+        return DatabaseChunkStore(self.db).get_by_ids(course_id, chunk_ids, concept_id)
+
     async def get_course_map(self, course_id: UUID) -> s.CourseMap:
-        chapters = self.db.scalars(
-            select(m.Chapter)
-            .where(m.Chapter.course_id == course_id)
-            .order_by(m.Chapter.order_index)
-        ).all()
-        concept_ids = (
-            select(m.Concept.id)
-            .join(m.Topic)
-            .join(m.Chapter)
-            .where(m.Chapter.course_id == course_id)
-        )
-        prerequisites = self.db.scalars(
-            select(m.ConceptPrerequisite).where(m.ConceptPrerequisite.concept_id.in_(concept_ids))
-        ).all()
-        return s.CourseMap(
-            course_id=course_id,
-            chapters=[s.Chapter.model_validate(c) for c in chapters],
-            prerequisites=[s.ConceptPrerequisite.model_validate(p) for p in prerequisites],
-        )
+        return course_map(self.db, course_id)

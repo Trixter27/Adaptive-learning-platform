@@ -10,11 +10,13 @@ import asyncio
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.errors import AppError
 from app.db.base import utc_now
 from app.db.session import SessionLocal
 from app.models.domain import ProcessingJob
 from app.services import factories
 from app.services.knowledge.base import KnowledgeService
+from app.services.knowledge.progress import observer
 
 
 async def execute_job(db: Session, job_id, knowledge: KnowledgeService) -> bool:
@@ -28,24 +30,42 @@ async def execute_job(db: Session, job_id, knowledge: KnowledgeService) -> bool:
         return False
     try:
         job = db.get(ProcessingJob, job_id)
-        for stage, progress in [("analyzing_content", 30), ("building_course", 50)]:
-            job.stage, job.progress = stage, progress
-            db.commit()
-        await knowledge.process_course(job.course_id)
+
+        def progress_update(stage, progress):
+            if db.get_bind().dialect.name == "postgresql":
+                # Only progress commits independently. The course lock and knowledge
+                # graph stay in the ingestion transaction; no partial graph is exposed.
+                with Session(bind=db.get_bind()) as progress_db:
+                    progress_db.execute(
+                        update(ProcessingJob)
+                        .where(ProcessingJob.id == job_id, ProcessingJob.status == "processing")
+                        .values(stage=stage, progress=progress)
+                    )
+                    progress_db.commit()
+            else:
+                # SQLite permits only one writer; retain markers in this transaction.
+                job.stage, job.progress = stage, progress
+                db.flush()
+
+        token = observer.set(progress_update)
+        try:
+            await knowledge.process_course(job.course_id)
+        finally:
+            observer.reset(token)
         db.flush()
-        # Mock stage markers only; no embeddings or index are actually created.
-        for stage, progress in [("creating_embeddings", 75), ("indexing", 90)]:
-            job.stage, job.progress = stage, progress
-            db.flush()
         job.status, job.stage, job.progress = "completed", "completed", 100
         job.completed_at = utc_now()
         db.commit()
-    except Exception:
+    except Exception as exc:
         db.rollback()
         job = db.get(ProcessingJob, job_id)
         if job is not None:
             job.status = "failed"
-            job.error = "PROCESSING_FAILED: course processing failed; inspect worker logs."
+            job.error = (
+                f"{exc.code}: {exc.message}"
+                if isinstance(exc, AppError)
+                else "PROCESSING_FAILED: course processing failed; inspect worker logs."
+            )
             job.completed_at = utc_now()
             db.commit()
         import logging
