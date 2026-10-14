@@ -13,6 +13,7 @@ import {
   Trophy,
 } from "lucide-react";
 import MediaArt from "@/components/app/MediaArt";
+import LiveCourses from "@/components/app/LiveCourses";
 import {
   dailyQuests,
   leaderboard,
@@ -97,6 +98,8 @@ export default function DashboardView() {
           </div>
         </div>
       </section>
+
+      <LiveCourses />
 
       <div className="flex flex-col gap-4 lg:col-span-8">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -220,8 +223,8 @@ export default function DashboardView() {
                 <Sparkles className="h-4 w-4" />
               </div>
               <div>
-                <div className="text-sm font-semibold">AI Mentor: Aria</div>
-                <div className="text-[10px] text-muted">Context Aware • Research-Grounded</div>
+                <div className="text-sm font-semibold">AI Mentor: Aria <span className="ml-1 rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-muted">preview</span></div>
+                <div className="text-[10px] text-muted">Live grounded tutoring is available inside each course concept.</div>
               </div>
             </div>
             <button type="button" className="text-muted" aria-label="Mentor options">
@@ -236,7 +239,7 @@ export default function DashboardView() {
             ))}
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-                Sources & Citations
+                Example source references
               </div>
               <p className="mt-1 text-[11px]">
                 Attention Is All You Need (Vaswani et al., 2017)
