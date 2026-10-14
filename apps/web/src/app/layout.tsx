@@ -35,16 +35,26 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  const content = (
+    <>
+      <Cursor />
+      {children}
+    </>
+  );
+
   return (
     <html
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
-        <ClerkProvider>
-          <Cursor />
-          {children}
-        </ClerkProvider>
+        {publishableKey ? (
+          <ClerkProvider publishableKey={publishableKey}>{content}</ClerkProvider>
+        ) : (
+          content
+        )}
       </body>
     </html>
   );
