@@ -21,10 +21,7 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!jobId) {
-      setError("Missing processing job id.");
-      return;
-    }
+    if (!jobId) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -61,6 +58,7 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
   }, [job]);
 
   const progress = job?.progress ?? 2;
+  const displayError = !jobId ? "Missing processing job id." : error;
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-3xl items-center justify-center">
@@ -68,11 +66,11 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(0,217,255,0.12),transparent_30%),radial-gradient(circle_at_10%_90%,rgba(255,61,154,0.13),transparent_30%)]" />
         <div className="relative">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink/15 text-pink">
-            {error ? <XCircle className="h-6 w-6" /> : <Sparkles className="h-6 w-6 animate-pulse" />}
+            {displayError ? <XCircle className="h-6 w-6" /> : <Sparkles className="h-6 w-6 animate-pulse" />}
           </div>
           <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan">Knowledge engine</div>
           <h1 className="mt-1 font-display text-3xl font-bold">
-            {error ? "Processing needs attention" : job?.status === "completed" ? "Your quest is ready." : "Building your learning world…"}
+            {displayError ? "Processing needs attention" : job?.status === "completed" ? "Your quest is ready." : "Building your learning world…"}
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
             Questoriaa is extracting your source, building the concept graph, and indexing grounded evidence for tutoring and assessment.
@@ -107,7 +105,7 @@ export default function ProcessingView({ courseId, jobId }: { courseId: string; 
             })}
           </div>
 
-          {error && (
+          {displayError && (
             <div className="mt-6 rounded-xl border border-pink/25 bg-pink/5 p-4 text-sm text-pink">
               {error}
             </div>
