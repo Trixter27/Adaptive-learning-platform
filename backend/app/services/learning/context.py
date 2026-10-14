@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.domain import CourseFile, SourceChunk
 from app.schemas.domain import RetrievedChunk, SourceReference
+from app.services.knowledge.store import concept_evidence_filter
 
 
 def resolve_context_sources(
@@ -29,9 +30,10 @@ def resolve_context_sources(
             SourceChunk.course_id == course_id,
             CourseFile.course_id == course_id,
             SourceChunk.id.in_([c.chunk_id for c in context]),
+            concept_evidence_filter(concept_id, allow_unassigned=True),
         )
     ).all()
-    by_id = {r.id: r for r in rows if r.concept_id in (None, concept_id)}
+    by_id = {r.id: r for r in rows}
     resolved = []
     seen = set()
     for chunk in context:
@@ -42,7 +44,7 @@ def resolve_context_sources(
         resolved.append(
             chunk.model_copy(
                 update={
-                    "concept_id": row.concept_id,
+                    "concept_id": concept_id,
                     "source": SourceReference(
                         file_id=row.file_id,
                         source_type=row.source_type,

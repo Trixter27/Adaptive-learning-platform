@@ -104,7 +104,9 @@ async def submit_attempt(
             "This challenge has already been attempted. Request a new challenge.",
         )
     state = get_mastery(db, user.id, challenge.concept_id, learning.initial_mastery)
-    context = await knowledge.retrieve_context(course_id, challenge.prompt, challenge.concept_id)
+    context = await knowledge.get_context_by_ids(
+        course_id, [UUID(value) for value in challenge.source_chunk_ids], challenge.concept_id
+    )
     context = resolve_context_sources(db, course_id, challenge.concept_id, context)
     # Old unattempted rows may contain the foundation's zero prior.
     if state.attempt_count == 0:

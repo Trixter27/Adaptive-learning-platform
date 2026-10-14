@@ -4,8 +4,11 @@ Platform Foundation v0.1 for a four-person hackathon: source-grounded tutoring,
 assessment, and gamified progression. A FastAPI modular monolith owns persistence
 and contracts; knowledge, learning, inference, and storage are replaceable service modules.
 Questoriaa Learning Engine v1 adds adaptive challenge orchestration, verification, grading,
-and Bayesian Knowledge Tracing. Local model and knowledge adapters remain deterministic mocks.
-The frontend workspace is `apps/web`. See [learning engine](docs/learning-engine.md).
+and Bayesian Knowledge Tracing. Knowledge Integration v1 adds PDF/PPTX extraction,
+persisted course graphs, pgvector retrieval and exact challenge evidence. Mock knowledge
+remains the default; real text inference is the next integration.
+The frontend workspace is `apps/web`. See [learning engine](docs/learning-engine.md)
+and [knowledge engine](docs/knowledge-engine.md) for configuration and limitations.
 
 ## Prerequisites
 
@@ -34,7 +37,10 @@ psql -U postgres -h localhost -c "CREATE DATABASE adaptive_learning;"
 ```
 
 For Neon, set `DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST/DATABASE?sslmode=require`.
-Percent-encode special characters in credentials. pgvector is not required.
+Percent-encode special characters in credentials. Migration 0002 requires PostgreSQL's
+`vector` extension; SQLite uses a JSON fallback. Review the
+[manual Neon preflight](docs/knowledge-engine.md#migration-and-manual-neon-preflight)
+before migrating an existing database.
 Application startup does not create tables: run migrations before using domain routes.
 
 ## Run
@@ -47,7 +53,7 @@ Application startup does not create tables: run migrations before using domain r
 - Interactive API docs: <http://localhost:8000/docs>
 - OpenAPI: <http://localhost:8000/openapi.json>
 
-In a second terminal at the repository root, start the database-backed mock worker:
+In a second terminal at the repository root, start the database-backed worker (mock knowledge by default):
 
 ```powershell
 .\.venv\Scripts\python.exe -m app.workers.processing --poll
@@ -55,7 +61,8 @@ In a second terminal at the repository root, start the database-backed mock work
 
 Use `--once` to process at most one pending job. POSTing `/process` queues a job;
 GET `/jobs/{job_id}` polls its status. Course maps stay empty until processing completes.
-No Redis, Celery, model endpoint, Clerk credential, or storage credential is needed locally.
+Default mock mode requires no model endpoint, Clerk credential, or storage credential.
+See the knowledge guide to enable real extraction and embeddings.
 
 ## Optional SQLite smoke demo
 

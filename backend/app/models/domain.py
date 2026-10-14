@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     CheckConstraint,
@@ -144,11 +145,24 @@ class SourceChunk(IdMixin, TimestampMixin, Base):
         ForeignKey("concepts.id", ondelete="SET NULL"), index=True
     )
     content: Mapped[str] = mapped_column(Text)
-    # Authoritative source metadata lives here; future pgvector migration adds embedding.
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(1024).with_variant(JSON(none_as_null=True), "sqlite"), nullable=True
+    )
+    # Authoritative source metadata comes exclusively from extraction.
     page_number: Mapped[int | None]
     slide_number: Mapped[int | None]
     start_seconds: Mapped[float | None]
     end_seconds: Mapped[float | None]
+
+
+class SourceChunkConcept(Base):
+    __tablename__ = "source_chunk_concepts"
+    chunk_id: Mapped[UUID] = mapped_column(
+        ForeignKey("source_chunks.id", ondelete="CASCADE"), primary_key=True
+    )
+    concept_id: Mapped[UUID] = mapped_column(
+        ForeignKey("concepts.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 class Challenge(IdMixin, TimestampMixin, Base):

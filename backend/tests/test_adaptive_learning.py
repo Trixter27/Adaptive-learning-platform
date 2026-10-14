@@ -497,6 +497,13 @@ def test_malformed_answers_do_not_mutate_mastery(client, learning_course, factor
 
 def test_assessment_sources_are_database_metadata_not_retriever_claims(client, learning_course):
     class WrongMetadata(MockKnowledgeService):
+        async def get_context_by_ids(self, *args, **kwargs):
+            chunks = await super().get_context_by_ids(*args, **kwargs)
+            return [
+                c.model_copy(update={"source": c.source.model_copy(update={"page_number": 999})})
+                for c in chunks
+            ]
+
         async def retrieve_context(self, *args, **kwargs):
             chunks = await super().retrieve_context(*args, **kwargs)
             return [
@@ -516,6 +523,39 @@ def test_assessment_sources_are_database_metadata_not_retriever_claims(client, l
     challenge = generate(client, learning_course).json()
     response = submit(client, challenge, {"text": "A sample contains 10 units."}).json()
     assert response["sources"][0]["page_number"] == 7
+
+
+def test_grading_loads_original_ids_without_semantic_search(client, learning_course):
+    from fastapi import Depends
+
+    from app.db.session import get_db
+
+    use_model(client, ScriptedModel("short_answer"))
+    challenge = generate(client, learning_course).json()
+    exact_calls = []
+
+    class ExactOnly(MockKnowledgeService):
+        async def retrieve_context(self, *args, **kwargs):
+            raise AssertionError("Grading must not run semantic retrieval")
+
+        async def get_context_by_ids(self, course_id, chunk_ids, concept_id=None):
+            exact_calls.append((course_id, chunk_ids, concept_id))
+            return await super().get_context_by_ids(course_id, chunk_ids, concept_id)
+
+    def knowledge(db=Depends(get_db)):
+        return ExactOnly(db)
+
+    client.app.dependency_overrides[get_knowledge] = knowledge
+    response = submit(client, challenge, {"text": "A sample contains 10 units."})
+    assert response.status_code == 200, response.text
+    assert exact_calls == [
+        (
+            UUID(learning_course["course_id"]),
+            [UUID(learning_course["chunk_id"])],
+            UUID(learning_course["concept_id"]),
+        )
+    ]
+    assert response.json()["sources"][0]["page_number"] == 7
 
 
 @pytest.mark.parametrize("mutation", ["source_id", "metadata", "score"])
