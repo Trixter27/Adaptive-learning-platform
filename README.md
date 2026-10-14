@@ -6,9 +6,10 @@ and contracts; knowledge, learning, inference, and storage are replaceable servi
 Questoriaa Learning Engine v1 adds adaptive challenge orchestration, verification, grading,
 and Bayesian Knowledge Tracing. Knowledge Integration v1 adds PDF/PPTX extraction,
 persisted course graphs, pgvector retrieval and exact challenge evidence. Mock knowledge
-remains the default; real text inference is the next integration.
+remains the default; real OpenAI-compatible text inference is configurable.
 The frontend workspace is `apps/web`. See [learning engine](docs/learning-engine.md)
 and [knowledge engine](docs/knowledge-engine.md) for configuration and limitations.
+See [model integration](docs/model-integration.md) for Ollama/Qwen endpoint setup.
 
 ## Prerequisites
 
@@ -91,7 +92,8 @@ $learningTemp = Join-Path (Get-Location).Path (".pytest_tmp\learning-" + [guid]:
 
 `LEARNING_MODE=adaptive` is the default; `mock` selects the legacy learner for local fallback.
 The adaptive service supports all five challenge modes; the local mock model generates MCQs.
-Production model calls fail explicitly until a real ModelProvider is selected in the factory.
+`MODEL_PROVIDER=openai` selects real text inference using `MODEL_BASE_URL`, `MODEL_API_KEY`,
+and `MODEL_NAME`. Mock/unavailable modes need no endpoint; see the model integration guide.
 
 Tests use isolated in-memory SQLite databases and temporary storage; they ignore production
 database/auth environment settings and never call an AI API. PostgreSQL's concurrent row

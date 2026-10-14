@@ -586,7 +586,9 @@ def test_model_unavailability_is_explicit_and_boot_still_works(client, learning_
 
 
 def test_production_factory_fails_closed_and_mock_remains_available(factory, monkeypatch):
-    settings = Settings(_env_file=None, environment="production", auth_mode="clerk")
+    settings = Settings(
+        _env_file=None, environment="production", auth_mode="clerk", model_provider=None
+    )
     monkeypatch.setattr(factories, "get_settings", lambda: settings)
     model = factories.create_model()
     assert isinstance(model, UnavailableModelProvider)

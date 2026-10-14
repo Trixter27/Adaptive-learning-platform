@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 from app.services.inference.base import ModelProvider
 from app.services.inference.mock import MockModelProvider
+from app.services.inference.openai_compat import OpenAICompatibleModelProvider
 from app.services.inference.unavailable import UnavailableModelProvider
 from app.services.knowledge.base import KnowledgeService
 from app.services.knowledge.embeddings import MockEmbeddingProvider, OpenAIEmbeddingProvider
@@ -51,6 +52,18 @@ def create_learning(db: Session, model: ModelProvider | None = None) -> Learning
 
 
 def create_model() -> ModelProvider:
-    if get_settings().environment in {"development", "test"}:
+    settings = get_settings()
+    provider = settings.model_provider or (
+        "mock" if settings.environment in {"development", "test"} else "unavailable"
+    )
+    if provider == "mock":
         return MockModelProvider()
+    if provider == "openai":
+        return OpenAICompatibleModelProvider(
+            settings.model_base_url,
+            settings.model_api_key,
+            settings.model_name,
+            timeout_seconds=settings.model_timeout_seconds,
+            max_attempts=settings.model_max_attempts,
+        )
     return UnavailableModelProvider()

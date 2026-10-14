@@ -102,11 +102,12 @@ Dimension is fixed to the schema's 1024. Mock embeddings are restricted to devel
 Use identical embedding model/settings for ingestion and queries; changing embedding spaces
 requires a new course and reingestion. There is no silent fallback after a provider failure.
 
-Text inference remains the existing mock in development/test and UnavailableModelProvider
-in production. `MODEL_*` alone does not yet select a real adapter. The next integration is
-an OpenAI-compatible implementation of the **existing ModelProvider**, selected in
-`create_model`, covering CourseDraft, TutorDraft, challenge verification and assessment
-schemas with timeout/error/schema validation. Real production ingestion needs that adapter.
+`MODEL_PROVIDER=openai` selects the real OpenAI-compatible text provider for hierarchy,
+tutor, challenge verification and assessment schemas. Set `MODEL_BASE_URL`, `MODEL_NAME`,
+and the endpoint's `MODEL_API_KEY` if authentication is required. The existing defaults
+remain mock in development/test and unavailable elsewhere when selection is omitted.
+See [model integration](model-integration.md) for timeout/retry behavior and manual smoke
+commands. ModelProvider and EmbeddingProvider remain independent.
 Local storage must be readable by both API and worker on the same shared filesystem; S3
 storage, Clerk verification and deployment infrastructure are unchanged.
 
