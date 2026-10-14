@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
+const backendInternalUrl = process.env.BACKEND_INTERNAL_URL?.replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     remotePatterns: [
       {
@@ -18,6 +19,16 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async rewrites() {
+    if (!backendInternalUrl) return [];
+
+    return [
+      {
+        source: "/backend-api/:path*",
+        destination: `${backendInternalUrl}/:path*`,
+      },
+    ];
   },
 };
 
