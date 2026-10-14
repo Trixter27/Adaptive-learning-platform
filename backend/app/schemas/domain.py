@@ -233,6 +233,7 @@ class AssessmentResult(BaseModel):
     mastery_before: Score
     mastery_after: Score
     next_action: NextAction
+    sources: list[SourceReference] = Field(default_factory=list)
 
 
 class Attempt(ORMModel):

@@ -9,11 +9,18 @@ from app.core.auth import ClerkAuthProvider, get_auth_provider
 from app.models import domain as m
 from app.schemas import domain as s
 from app.services import factories
-from app.services.dependencies import get_model
+from app.services.dependencies import get_learning, get_model
 from app.services.inference.mock import MockModelProvider
 from app.services.inference.schemas import TutorDraft
+from app.services.learning.mock import MockLearningService
 from app.services.storage.local import get_storage
 from app.workers.processing import execute_job, run_once
+
+
+@pytest.fixture(autouse=True)
+def legacy_mock_learning(client):
+    """Preserve the foundation regression suite against its explicit mock adapter."""
+    client.app.dependency_overrides[get_learning] = lambda: MockLearningService()
 
 
 def test_health_and_openapi(client):
@@ -116,8 +123,13 @@ def test_challenge_attempt_progress_and_game(client, processed_course, factory):
     game = s.GameState.model_validate(client.get(f"/api/v1/courses/{cid}/game").json())
     assert game.xp == 20 and game.completed_challenges == [challenge.id]
     assert game.unlocked_chapter_ids
-    client.post("/api/v1/attempts", json=payload)
+    assert client.post("/api/v1/attempts", json=payload).status_code == 409
     assert client.get(f"/api/v1/courses/{cid}/game").json()["xp"] == 20
+    second = client.post("/api/v1/challenges/next", json={"course_id": cid}).json()
+    payload["challenge_id"] = second["id"]
+    assert client.post("/api/v1/attempts", json=payload).status_code == 200
+    third = client.post("/api/v1/challenges/next", json={"course_id": cid}).json()
+    payload["challenge_id"] = third["id"]
     payload["answer"] = {"selected_option": 2}
     wrong = client.post("/api/v1/attempts", json=payload).json()
     assert not wrong["correct"] and wrong["misconception"] and wrong["mastery_after"] == 0.3

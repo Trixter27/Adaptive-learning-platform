@@ -25,7 +25,9 @@ worker (same package) -> processing_jobs -> knowledge service -> persisted cours
   cascade deletion, initial reversible Alembic migration.
 - `services/knowledge`: processing and retrieval. The mock builds an idempotent graph
   with one chapter, one topic, two concepts, a prerequisite, a quest and two source chunks.
-- `services/learning`: challenge generation, evaluation, mastery and next-action policy.
+- `services/learning`: AdaptiveLearningService orchestrates grounded generation, verification,
+  repetition checks, deterministic/model grading, BKT mastery and next-action policy.
+  MockLearningService remains available for development fallback and foundation regression tests.
 - `services/inference`: ModelProvider abstraction. No network calls or real inference.
 - `services/storage`: upload information, metadata and deletion abstraction.
 - `services/game`: persisted XP, level, completed challenges and unlocked chapters.
@@ -41,6 +43,12 @@ share that factory; replacing knowledge requires changing only `create_knowledge
 in `services/inference/schemas.py` so application services do not depend on inference mocks.
 The storage interface covers production operations; the extra local PUT
 route belongs specifically to the local adapter and will disappear when using S3 URLs.
+
+The learning factory receives the same ModelProvider dependency used elsewhere in the API.
+Production model calls fail closed until a real adapter is selected. Learning retrieves material
+through KnowledgeService and only reads attempt history plus citation metadata directly from the
+database. Assessment citations are resolved by the platform, and game rewards stay outside AI
+code. See [Learning Engine v1](learning-engine.md) for verification, BKT and grading contracts.
 
 ## Jobs and transactions
 

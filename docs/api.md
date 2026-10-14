@@ -75,15 +75,31 @@ uses one active job per course. Rerunning completed processing is idempotent for
 {
   "correct": true,
   "score": 1.0,
-  "feedback": "Correct! Keep practicing retrieval.",
+  "feedback": "Correct. Supporting evidence: Active recall means retrieving information from memory instead of rereading notes.",
   "misconception": null,
-  "mastery_before": 0.0,
-  "mastery_after": 0.2,
-  "next_action": "continue"
+  "mastery_before": 0.2,
+  "mastery_after": 0.6,
+  "next_action": "continue",
+  "sources": [{
+    "file_id": "00000000-0000-4000-8000-000000000001",
+    "source_type": "text",
+    "page_number": null,
+    "slide_number": null,
+    "start_seconds": null,
+    "end_seconds": null
+  }]
 }
 ```
 
 Tutor sources contain a real stored file UUID and source type; fixture text sources have
 null page/slide/timestamps. Generated challenge content contains `options`, source_chunk_ids,
 and no private answer key. Allowed modes are `mcq`, `matching`, `sequence`, `short_answer`,
-and `numerical`; only MCQ is generated/evaluated by the mock. See contracts.md for ownership.
+and `numerical`. The adaptive learner supports all five; the local model mock generates MCQ
+fixtures. The file UUID above is illustrative; actual feedback sources are resolved from the DB.
+See [learning engine](learning-engine.md) for per-mode answer formats and grading behavior.
+
+Generation returns `422 INVALID_CHALLENGE` after bounded verification/repetition retries;
+missing supporting context returns 409. Provider errors/timeouts return `503 MODEL_UNAVAILABLE`.
+These failures do not persist partial challenges, assessments, mastery or game rewards.
+Submitting an already graded challenge again returns `409 INVALID_CHALLENGE` for that user;
+request a new challenge for another learning observation. Rejected repeats do not change progress.

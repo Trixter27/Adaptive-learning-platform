@@ -3,13 +3,17 @@ from pathlib import Path
 from typing import Literal
 from uuid import UUID
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.services.learning.policy import LearningPolicy
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parents[3] / ".env", extra="ignore"
+        env_file=Path(__file__).resolve().parents[3] / ".env",
+        extra="ignore",
+        env_nested_delimiter="__",
     )
 
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/adaptive_learning"
@@ -29,6 +33,8 @@ class Settings(BaseSettings):
     model_base_url: str = ""
     model_api_key: str = ""
     model_name: str = ""
+    learning_mode: Literal["adaptive", "mock"] = "adaptive"
+    learning: LearningPolicy = Field(default_factory=LearningPolicy)
 
     @model_validator(mode="after")
     def safe_auth(self) -> "Settings":

@@ -5,6 +5,9 @@ from app.schemas.domain import AssessmentResult, MasteryState, NextAction, Retri
 
 
 class LearningService(Protocol):
+    @property
+    def initial_mastery(self) -> float: ...
+
     async def generate_challenge(
         self, concept: Concept, source_context: list[RetrievedChunk], mastery_state: MasteryState
     ) -> Challenge: ...

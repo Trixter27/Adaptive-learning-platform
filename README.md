@@ -3,7 +3,9 @@
 Platform Foundation v0.1 for a four-person hackathon: source-grounded tutoring,
 assessment, and gamified progression. A FastAPI modular monolith owns persistence
 and contracts; knowledge, learning, inference, and storage are replaceable service modules.
-All AI behavior is deterministic mock behavior. The frontend workspace is `apps/web`.
+Questoriaa Learning Engine v1 adds adaptive challenge orchestration, verification, grading,
+and Bayesian Knowledge Tracing. Local model and knowledge adapters remain deterministic mocks.
+The frontend workspace is `apps/web`. See [learning engine](docs/learning-engine.md).
 
 ## Prerequisites
 
@@ -73,6 +75,17 @@ $env:DATABASE_URL = "sqlite:///./backend/local.db"
 .\.venv\Scripts\python.exe -m ruff check backend
 ```
 
+For Windows temp permission issues, use a fresh local directory without pytest's cache:
+
+```powershell
+$learningTemp = Join-Path (Get-Location).Path (".pytest_tmp\learning-" + [guid]::NewGuid().ToString("N"))
+.\.venv\Scripts\python.exe -m pytest backend/tests -q -p no:cacheprovider --basetemp $learningTemp
+```
+
+`LEARNING_MODE=adaptive` is the default; `mock` selects the legacy learner for local fallback.
+The adaptive service supports all five challenge modes; the local mock model generates MCQs.
+Production model calls fail explicitly until a real ModelProvider is selected in the factory.
+
 Tests use isolated in-memory SQLite databases and temporary storage; they ignore production
 database/auth environment settings and never call an AI API. PostgreSQL's concurrent row
 locking and live Neon connectivity need separate integration verification.
@@ -100,11 +113,12 @@ Use one API process for this milestone. S3 will replace the storage adapter late
 | 3 Learning / Assessment | `services/learning`, challenge evaluation, mastery |
 | 4 Platform / Integration | API, DB, schemas, auth, storage, workers, persistence |
 
-Work on your assigned feature branch (`feature/platform` for this foundation).
+Work on your assigned feature branch (`feature/learning-engine` for the learning engine).
 Agree on shared schema changes across roles; generate frontend types from OpenAPI.
 Open reviewed PRs through the team's develop/main workflow. Do not push or merge another
 developer's work without agreement. This task does not commit, push, or merge.
 
 Read [architecture](docs/architecture.md), [contracts](docs/contracts.md), and
 [API examples](docs/api.md) before integrating. Next: Role 1 can connect the create-course →
-process → poll → map → challenge → attempt → progress flow while Roles 2/3 replace mocks.
+process → poll → map → challenge → attempt → progress flow. Next engine integration is a real
+ModelProvider for generation, verification and short-answer grading through the existing factory.
