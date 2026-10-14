@@ -1,6 +1,7 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 const protectedPrefixes = [
+  "/backend-api",
   "/dashboard",
   "/library",
   "/quests",
