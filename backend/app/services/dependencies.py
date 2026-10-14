@@ -12,9 +12,11 @@ def get_knowledge(db: Session = Depends(get_db)) -> KnowledgeService:
     return factories.create_knowledge(db)
 
 
-def get_learning() -> LearningService:
-    return factories.create_learning()
-
-
 def get_model() -> ModelProvider:
     return factories.create_model()
+
+
+def get_learning(
+    db: Session = Depends(get_db), model: ModelProvider = Depends(get_model)
+) -> LearningService:
+    return factories.create_learning(db, model)

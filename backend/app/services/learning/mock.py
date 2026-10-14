@@ -7,6 +7,8 @@ from app.schemas.domain import AssessmentResult, MasteryState, NextAction, Retri
 
 
 class MockLearningService:
+    initial_mastery = 0.0
+
     async def generate_challenge(
         self, concept: Concept, source_context: list[RetrievedChunk], mastery_state: MasteryState
     ) -> Challenge:
