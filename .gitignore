@@ -11,3 +11,5 @@ platform-v0.1-review*.zip
 backend/.local-storage/
 node_modules/
 .next/
+
+*-review.zip
