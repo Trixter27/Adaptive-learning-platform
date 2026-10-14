@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     embedding_base_url: str = ""
     embedding_api_key: str = ""
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
-    embedding_dimension: Literal[1024] = 1024
+    embedding_dimension: int = Field(default=1024, ge=1024, le=1024)
     learning_mode: Literal["adaptive", "mock"] = "adaptive"
     learning: LearningPolicy = Field(default_factory=LearningPolicy)
 
