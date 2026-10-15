@@ -1,6 +1,6 @@
 #!/bin/sh
 # One API process (local upload signatures are process-local) and one DB worker.
-# Schema upgrades are an explicit operator step; never migrate automatically.
+# Upgrade the schema before either process can accept work; fail startup on error.
 set -eu
 cd "$(dirname "$0")"
 export PYTHONUNBUFFERED=1
@@ -19,6 +19,8 @@ if [ "$KNOWLEDGE_PROVIDER" != questoriaa ] || [ "$MODEL_PROVIDER" != openai ] ||
 fi
 export LOCAL_STORAGE_PATH="${LOCAL_STORAGE_PATH:-/data/storage}"
 mkdir -p "$LOCAL_STORAGE_PATH"
+
+python -m alembic -c alembic.ini upgrade head
 
 worker_pid=""
 api_pid=""

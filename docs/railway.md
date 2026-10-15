@@ -12,7 +12,7 @@ Deploy externally; this completion pass did not deploy or apply live migrations.
 | Replicas | 1 for this demo | **1**, one Uvicorn process and one worker |
 | Storage | None | Existing volume at `/data`; `LOCAL_STORAGE_PATH=/data/storage` |
 
-`start.sh` supervises both processes and stops the sibling if either exits. Configure restart on failure. It requires real endpoint configuration and rejects mock provider selection. It does **not** run Alembic. Interrupted jobs still need explicit operator recovery. `/health` is liveness, not database/model readiness.
+`start.sh` runs `python -m alembic -c alembic.ini upgrade head` before starting either process and fails startup if migration fails. It then supervises both processes and stops the sibling if either exits. Configure restart on failure. It requires real endpoint configuration and rejects mock provider selection. Interrupted jobs still need explicit operator recovery. `/health` is liveness, not database/model readiness. Keep one API service replica so startup migrations are not run concurrently.
 
 Set API `PORT=8000`. Set web `BACKEND_INTERNAL_URL=http://questoriaa-api.railway.internal:8000` and `NEXT_PUBLIC_API_BASE_URL=/backend-api` **before building**, and keep the internal URL available at runtime. Next rewrites are built into the routing manifest; rebuild after changing these values. If the API port changes, change the URL too. Private DNS is needed at runtime, not during compilation.
 
@@ -51,7 +51,7 @@ Signed PUTs retain the API prefix through `/backend-api`, preserve the reserved 
 ## External final check
 
 1. Restore the real text and embedding endpoints; run `backend/scripts/model_smoke.py` locally.
-2. Confirm existing migration `0002`; approve any future migration separately. This pass only read the live schema.
+2. Startup now applies the existing migrations up to `0002`, as authorized for final deployment. This pass tested startup migration on isolated SQLite and only read the live Neon schema; it did not execute startup against Neon.
 3. Configure service roots/build/start commands, private URL/port, volume and Clerk domain.
 4. Deploy externally, then verify health, worker logs, login, upload, processing, assessment and citations.
 5. Confirm unauthenticated `/backend-api/api/v1/courses` returns 401. Do not expose a public API domain.
